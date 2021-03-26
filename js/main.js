@@ -68,6 +68,10 @@ const cart = {
 			cartCount.textContent = '';
 		}
 	},
+	clearCart() {
+		cart.cartGoods.length = 0;
+		cart.renderCart();
+	},
 	deleteGood(id) {
 		this.cartGoods = this.cartGoods.filter(item => id !== item.id);
 		this.renderCart();
@@ -113,20 +117,12 @@ const cart = {
 						count: 1,
 					});
 				});
-				cartCount.textContent++;
+			cartCount.textContent++;
 		}
 	},
 };
 
-const clearCart = () => {
-	if (cart.cartGoods.length >= 1) {
-		cart.cartGoods = [];
-		cart.renderCart();
-	}
-}
-
-btnClear.addEventListener('click', clearCart);
-
+btnClear.addEventListener('click', cart.clearCart);
 
 document.body.addEventListener('click', event => {
 	const addToCart = event.target.closest('.add-to-cart');
@@ -134,7 +130,7 @@ document.body.addEventListener('click', event => {
 	if (addToCart) {
 		cart.addCCartGoods(addToCart.dataset.id);
 	}
-})
+});
 
 cartTableGoods.addEventListener('click', event => {
 	const target = event.target;
@@ -161,12 +157,16 @@ const openModal = () => {
 
 };
 
+const closeModal = () => {
+	modalCart.classList.remove('show')
+};
+
 buttonCart.addEventListener('click', openModal);
 
 modalCart.addEventListener('click', function (event) {
 	let target = event.target;
 	if (target === modalCart || target.classList.contains('modal-close')) {
-		modalCart.classList.remove('show')
+		closeModal();
 	}
 });
 
@@ -243,4 +243,43 @@ btnBanners.forEach(function (btnBanner) {
 		event.preventDefault();
 		btnBanner.classList.contains('Accessories') ? filterCards('category', 'Accessories') : filterCards('category', 'Clothing');
 	});
+});
+
+
+// Send request on server (day 4)
+
+const modalForm = document.querySelector('.modal-form');
+
+const postData = dataUser => fetch('server.php', {
+	method: 'POST',
+	body: dataUser,
+});
+
+modalForm.addEventListener('submit', event => {
+	event.preventDefault();
+
+	const formData = new FormData(modalForm);
+	formData.append('cart', JSON.stringify(cart.cartGoods));
+
+	if (cart.cartGoods.length < 1) {
+		alert('Пожалуйста, добавте товары в корзину!')
+	} else {
+		postData(formData)
+		.then(response => {
+			if (!response.ok) {
+				throw new Error(response.status);
+			};
+			alert('Ваш заказ успешно отправлен, с вами свяжутся в ближайшее время');
+			console.log(response.statusText);
+		})
+		.catch(err => {
+			alert('К сожалению, произошла ошибка, повторите попытку позже');
+			console.error(err)
+		})
+		.finally(() => {
+			closeModal();
+			modalForm.reset();
+			cart.clearCart();
+		});
+	};
 });
