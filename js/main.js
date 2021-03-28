@@ -31,8 +31,12 @@ const getGoods = async () => {
 	return await result.json();
 };
 
+
 const cart = {
-	cartGoods: [],
+	cartGoods: JSON.parse(localStorage.getItem('cartWilb')) || [],
+	updateLocalStorage() {
+		localStorage.setItem('cartWilb', JSON.stringify(this.cartGoods));
+	},
 	renderCart() {
 		cartTableGoods.textContent = '';
 		this.cartGoods.forEach(({
@@ -59,6 +63,8 @@ const cart = {
 			return sum + item.price * item.count;
 		}, 0);
 		cartTableTotal.textContent = totalPrice + '$';
+	},
+	countQuantity() {
 		const totalCount = this.cartGoods.reduce((sum, item) => {
 			return sum + item.count;
 		}, 0);
@@ -70,10 +76,14 @@ const cart = {
 	},
 	clearCart() {
 		cart.cartGoods.length = 0;
+		cart.countQuantity();
+		cart.updateLocalStorage();
 		cart.renderCart();
 	},
 	deleteGood(id) {
 		this.cartGoods = this.cartGoods.filter(item => id !== item.id);
+		this.countQuantity();
+		this.updateLocalStorage();
 		this.renderCart();
 	},
 	minusGood(id) {
@@ -87,6 +97,8 @@ const cart = {
 				break;
 			}
 		}
+		this.countQuantity();
+		this.updateLocalStorage();
 		this.renderCart();
 	},
 	plusGood(id) {
@@ -96,6 +108,8 @@ const cart = {
 				break;
 			}
 		}
+		this.countQuantity();
+		this.updateLocalStorage();
 		this.renderCart();
 	},
 	addCCartGoods(id) {
@@ -116,11 +130,14 @@ const cart = {
 						price,
 						count: 1,
 					});
+					this.updateLocalStorage();
+					this.countQuantity();
 				});
-			cartCount.textContent++;
 		}
 	},
 };
+
+cart.countQuantity();
 
 btnClear.addEventListener('click', cart.clearCart);
 
