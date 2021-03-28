@@ -255,11 +255,27 @@ const postData = dataUser => fetch('server.php', {
 	body: dataUser,
 });
 
+// Проверка на заполненные поля формы
+const validForm = (formData) => {
+	let valid = false;
+
+	for (const [, value] of formData) {
+		if (value.trim()) {
+			valid = true;
+		} else {
+			valid = false;
+			break;
+		};
+	};
+	return valid;
+};
+
 modalForm.addEventListener('submit', event => {
 	event.preventDefault();
-
 	const formData = new FormData(modalForm);
-	formData.append('cart', JSON.stringify(cart.cartGoods));
+
+	if (validForm(formData)) {
+		formData.append('cart', JSON.stringify(cart.cartGoods));
 
 	if (cart.cartGoods.length < 1) {
 		alert('Пожалуйста, добавте товары в корзину!')
@@ -281,5 +297,8 @@ modalForm.addEventListener('submit', event => {
 			modalForm.reset();
 			cart.clearCart();
 		});
+	};
+	} else {
+		alert('Заполните поля!')
 	};
 });
